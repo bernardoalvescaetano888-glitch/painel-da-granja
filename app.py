@@ -40,6 +40,11 @@ def app_dir():
         return os.path.dirname(sys.executable)
     return os.path.dirname(os.path.abspath(__file__))
 
+def res_path(nome):
+    """Arquivos embutidos no EXE (ícone, logo)."""
+    base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base, nome)
+
 DATA_DIR = os.path.join(os.environ.get("APPDATA", app_dir()), "PainelGranja")
 os.makedirs(DATA_DIR, exist_ok=True)
 DB = os.path.join(DATA_DIR, "granja.db")
@@ -99,14 +104,21 @@ class App(tk.Tk):
         self.geometry("820x600")
         self.minsize(760, 560)
         self.configure(bg=FUNDO)
+        try:
+            self.iconbitmap(res_path("icone.ico"))
+        except Exception:
+            pass
+        # logo da foto real (fica vivo durante a janela inteira)
+        self._logo = tk.PhotoImage(file=res_path("logo.png"))
 
         self._estilos()
 
         # ---------- cabeçalho premium
         topo = tk.Frame(self, bg=VERDE_ESCURO)
         topo.pack(fill="x")
-        tk.Label(topo, text="🐔 PAINEL DA GRANJA", bg=VERDE_ESCURO, fg="white",
-                 font=FONTE_TITULO).pack(side="left", padx=16, pady=(10, 2))
+        tk.Label(topo, image=self._logo, bg=VERDE_ESCURO).pack(side="left", padx=(12, 8), pady=8)
+        tk.Label(topo, text="PAINEL DA GRANJA", bg=VERDE_ESCURO, fg="white",
+                 font=FONTE_TITULO).pack(side="left", pady=(10, 2))
         tk.Label(topo, text="Gestão profissional da sua produção de ovos",
                  bg=VERDE_ESCURO, fg="#a8cbb5",
                  font=("Segoe UI", 9)).pack(side="left", padx=(12, 0), pady=(12, 2))
@@ -568,6 +580,14 @@ class App(tk.Tk):
                    command=lambda: os.startfile(DATA_DIR)).pack(padx=12, pady=6, fill="x")
         ttk.Label(f, text="Ao desinstalar o programa, seus dados NÃO são apagados.",
                   foreground=CINZA).pack(padx=14, pady=10, anchor="w")
+        sobre = ttk.LabelFrame(f, text="  Sobre  ", style="Card.TLabelframe")
+        sobre.pack(fill="x", padx=12, pady=10)
+        inner = ttk.Frame(sobre, style="Card.TFrame"); inner.pack(padx=14, pady=10, fill="x")
+        tk.Label(inner, image=self._logo, bg=CARD).pack(side="left", padx=(0, 12))
+        tk.Label(inner, bg=CARD, fg=CINZA, font=FONTE, justify="left", anchor="w",
+                 text=("Painel da Granja — versão 1.0\n"
+                       "Ícone: foto “Chicken” de normanack (CC BY 2.0)\n"
+                       "Clima: Open-Meteo — grátis, sem cadastro")).pack(side="left")
 
     def salvar_conf(self):
         with conn() as c:
