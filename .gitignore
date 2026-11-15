@@ -1,0 +1,7 @@
+# build e lixo
+build/
+dist/
+instalador/
+__pycache__/
+*.jpg
+*_mini.png
